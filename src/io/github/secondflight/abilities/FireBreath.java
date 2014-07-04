@@ -50,8 +50,10 @@ public class FireBreath implements Listener {
 	
 	
 	private void fireBreath (Player p, int level, ItemStack i) {
-		int fireDuration;
-		int breathDuration;
+		System.out.println("FireBreath has been called for player " + p.getDisplayName() + ".");
+		
+		int fireDuration = 0;
+		int breathDuration = 0;
 		
 		
 		if (level == 1) {
@@ -73,9 +75,16 @@ public class FireBreath implements Listener {
 		
 		
 		
+		System.out.println("Fire duration: " + fireDuration + " ticks");
+		System.out.println("Breath duration: " + breathDuration + " ticks");
 		
+		animation(p, 20, fireDuration);
 		
 		}
+	
+	private void animation(Player p, int distance, int burnTime) {
+		System.out.println("The animation for Fire Breath had been started with a distance of " + distance + " blocks and a burn duration of " + burnTime + " ticks.");
+	}
 	
 
 
