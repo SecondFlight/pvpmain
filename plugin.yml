@@ -1,0 +1,10 @@
+name: PVPMain
+main: io.github.secondflight.PVPMain.PVPMain
+version: 0.01
+
+description: >
+                 Main (maybe only idk lol) plugin for the awesome pvp thing
+commands:
+
+  test:
+    description: for debugging

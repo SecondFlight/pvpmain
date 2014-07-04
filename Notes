@@ -1,0 +1,39 @@
+- Designated level areas with monsters for players to grind in.
+
+ITEMS:
+- Random Item generator
+	- Each item is assigned an ability randomly
+- Items are assigned tiers
+
+- Items can be obtained by:
+	- killing other players
+		- each player has a chance based on level of dropping that item
+		- the closer you are to their level, the higher the chance
+		- each of their items has a certain chance of dropping
+	- killing mobs
+	- dungeons (maybe?)
+
+
+ENCHANTMENTS:
+	- Skill trees (Maybe?)
+
+i'm going to work on player spawning
+
+what i'm going to do now is if a player logs out, they get tp'd back to spawn when they log back in
+
+then they can just tp to the spawn pad for their level whenever they log back in
+
+TODO LIST:
+ - Config System
+ - Base Frameworks
+ 	- mob spawning
+ 	- item drops
+ 	- passive abilities
+ 	- special abilities
+
+- Character Progression
+	- Skill Trees 
+	
+- AFTER FIRST ITERATION IS FINISHED
+	- Balance everything
+
