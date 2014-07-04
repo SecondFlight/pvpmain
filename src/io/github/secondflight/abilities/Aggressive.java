@@ -32,20 +32,7 @@ public class Aggressive implements Listener {
 	
 	DescriptionHandler dh = new DescriptionHandler();
 	
-	@EventHandler
-	public void clickListener(PlayerInteractEvent event) {
-		Player p = event.getPlayer();
-		ItemStack i = p.getItemInHand();
-		
-		if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-			
-			if (dh.hasAggressiveAbility(i, "Fire Breath")) {
-				fireBreath(p, dh.getAggressiveAbilityLevel(i), i);
-			}
-			
-			
-		}
-	}
+
 	
 	@EventHandler
 	public void hitListener(EntityDamageByEntityEvent event) {
@@ -131,33 +118,7 @@ public class Aggressive implements Listener {
 	
 
 	
-	private void fireBreath (Player p, int level, ItemStack i) {
-		int fireDuration;
-		int breathDuration;
-		
-		
-		if (level == 1) {
-			fireDuration = 60;
-			breathDuration = 80;
-		} else if (level == 2) {
-			fireDuration = 80;
-			breathDuration = 80;
-		} else if (level == 3) {
-			fireDuration = 100;
-			breathDuration = 120;
-		} else if (level == 4) {
-			fireDuration = 120;
-			breathDuration = 160;
-		} else if (level == 5) {
-			fireDuration = 140;
-			breathDuration = 160;
-		}
-		
-		
-		
-		
-		
-	}
+
 	
 	
 	

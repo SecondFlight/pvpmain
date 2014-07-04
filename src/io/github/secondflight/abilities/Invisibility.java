@@ -78,7 +78,7 @@ public class Invisibility implements Listener {
 	
 	int task1;
 	
-	public void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
+	private void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
 		//player.sendMessage("durabilityTimer has been called");
 		
 			
