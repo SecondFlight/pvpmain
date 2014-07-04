@@ -49,7 +49,7 @@ public class PVPMain extends JavaPlugin implements Listener {
 		
 		getServer().getPluginManager().registerEvents(this, this);
 		getServer().getPluginManager().registerEvents(new Aggressive(this), this);
-		
+		getServer().getPluginManager().registerEvents(new Invisibility(this), this);
 		
 		PVPMain plugin;
 		agg = new Aggressive(this);

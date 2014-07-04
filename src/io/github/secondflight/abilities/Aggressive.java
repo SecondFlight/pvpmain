@@ -39,11 +39,7 @@ public class Aggressive implements Listener {
 		
 		if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 			
-			if (dh.hasAggressiveAbility(i, "Invisibility")) {
-				
-				invisibility(p, dh.getAggressiveAbilityLevel(i), i);
-			
-			} else if (dh.hasAggressiveAbility(i, "Fire Breath")) {
+			if (dh.hasAggressiveAbility(i, "Fire Breath")) {
 				fireBreath(p, dh.getAggressiveAbilityLevel(i), i);
 			}
 			
@@ -71,7 +67,7 @@ public class Aggressive implements Listener {
 	
 	
 	
-	public static Map<Player, Integer> invisibilityCooldown = new HashMap<Player, Integer>();
+	
 	public static Map<Player, Integer> fireBreathCooldown = new HashMap<Player, Integer>();
 	
 	private void healthSteal (Player damager, int level) {
@@ -133,36 +129,7 @@ public class Aggressive implements Listener {
 	
 	
 	
-	private void invisibility (Player player, int level, ItemStack i) {
-		
-		int duration = 0;
-		int cooldown = 1000;
-		
-		if (level == 1) {
-			duration = 200;
-		} else if (level == 2) {
-			duration = 300;
-		} else if (level == 3) {
-			duration = 400;
-		}
-		
-		if (invisibilityCooldown.get(player) == null) {
-			invisibilityCooldown.put(player, 0);
-		}
-		
-		if (invisibilityCooldown.get(player) == 0) {
-			player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, duration, 1, true));
-			
-			
-			durabilityTimer(i, cooldown, player);
-			
-		} /** else if (invisibilityCooldown.get(player) > 0) {
-			
-			
-			player.sendMessage(ChatColor.RED + "You need to wait " + ChatColor.WHITE + Math.ceil((invisibilityCooldown.get(player)/20)) + ChatColor.RED + " more seconds before you can use invisibility again.");
-			
-		}*/
-	}
+
 	
 	private void fireBreath (Player p, int level, ItemStack i) {
 		int fireDuration;
@@ -192,52 +159,9 @@ public class Aggressive implements Listener {
 		
 	}
 	
-	int task1;
 	
-	public void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
-		//player.sendMessage("durabilityTimer has been called");
-		
-			
-			
-			
-			
-			
-			item.setDurability(item.getType().getMaxDurability());
-			
-			task1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-				
-				
-				short maxDurability = item.getType().getMaxDurability();
-				short durability = maxDurability;
-				short interval = (short)Math.round(maxDurability/(ticks / 100));
-				int iterations = Math.round(ticks/100);
-				
-				
-				
-				public void run() {
-					
-					durability = (short) (durability - interval);
-					item.setDurability(durability);
-					iterations = iterations - 1;
-					
-					Aggressive.invisibilityCooldown.put(player, iterations*100);
-					
-					player.sendMessage(Integer.toString(iterations));
-					
-					if (!(iterations > 0)) {
-						item.setDurability((short)0);
-						Bukkit.getScheduler().cancelTask(task1);
-						
-						Aggressive.invisibilityCooldown.put(player, 0);
-					}
-					
-					}
-				}, 0L, 100L);
-		
-		
-		
 	
-		}
+
 	
 	/**int task2;
 	
