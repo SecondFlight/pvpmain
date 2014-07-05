@@ -1,11 +1,16 @@
 package io.github.secondflight.abilities;
 
 import io.github.secondflight.util.DescriptionHandler;
+import io.github.secondflight.util.ParticleEffect;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,6 +18,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.BlockIterator;
 
 	
 
@@ -20,6 +26,7 @@ import org.bukkit.plugin.Plugin;
 
 public class FireBreath implements Listener {
 	
+	int fireBreathAnimationTask;
 	
 	public static Map<Player, Integer> fireBreathCooldown = new HashMap<Player, Integer>();
 	
@@ -84,14 +91,61 @@ public class FireBreath implements Listener {
 	
 	private void animation(Player p, int distance, int burnTime) {
 		System.out.println("The animation for Fire Breath had been started with a distance of " + distance + " blocks and a burn duration of " + burnTime + " ticks.");
+		
+		final List<Block> blockList = getBlocks(p, distance);
+		
+		final int howManyBlocks = blockList.size();
+		
+		final Player pClone = p;
+		
+		
+		
+		
+		System.out.println("Iterator has come up with " + (howManyBlocks + 1) + " blocks.");
+		
+		fireBreathAnimationTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+			int currentBlock = 0;
+			
+			public void run() {
+				
+				if (currentBlock < howManyBlocks) {
+					ParticleEffect.FLAME.display(blockList.get(currentBlock).getLocation(), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 100);
+					
+					currentBlock += 1;
+				} else {
+					Bukkit.getScheduler().cancelTask(fireBreathAnimationTask);
+				}
+				
+				}
+			}, 0L, 5L);
+		
+		
 	}
 	
+	private List<Block> getBlocks (Player p, int distance) {
+		System.out.println("getBlocks has been called.");
+		
+		List<Block> list = new ArrayList<Block>();
+		
+		BlockIterator blocks = new BlockIterator(p.getWorld(), p.getLocation().toVector(), p.getLocation().getDirection().normalize(), 0, distance);
+		
+		System.out.println("blockiterator has been created");
+		
+		while (blocks.hasNext()) {
+			if (blocks.next().getType() == Material.AIR) {
+				
+				list.add(blocks.next());
+				System.out.println("block has been added to list");
+			}
+		}
+		
+		return list;
+	}
 
 
+	int task1;
 
-int task1;
-
-private void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
+	private void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
 	//player.sendMessage("durabilityTimer has been called");
 	
 		
