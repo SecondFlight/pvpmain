@@ -56,31 +56,21 @@ public class DescriptionHandler
 	
 	// returns true if the item has the aggressive ability
 		public boolean hasAggressiveAbility (ItemStack i, String aggressiveAbility) {
-			System.out.println("Checking if the player has " + aggressiveAbility + "...");
 			
 			if (!(i == null)) {
 				ItemMeta m = i.getItemMeta();
-				System.out.println("The item's meta has been assigned to m.");
-			
-			
 				if (m.hasLore() && m.getLore().size() >= aggressiveAbilityPos) {
-					System.out.println("The lore line that should contain the aggressive ability is not null.");
-				
 					String abilityLine = m.getLore().get(aggressiveAbilityPos);
-					System.out.println("That lore line has been assigned to string abilityLine.");
 			
 				
 					String ability = abilityLine.substring(20, abilityLine.length()-2);
-					System.out.println("A substring of abilityLine has been assigned to ability");
 				
 					if (ability.equalsIgnoreCase(aggressiveAbility)) {
-						System.out.println("The item has " + aggressiveAbility + ".");
 						return true;
 					}
 				}
 			}
 			
-			System.out.println("The item does not have " + aggressiveAbility + ".");
 			return false;
 			
 			

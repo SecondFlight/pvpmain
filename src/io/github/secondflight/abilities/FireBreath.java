@@ -46,10 +46,8 @@ public class FireBreath implements Listener {
 		ItemStack i = event.getItem();
 		
 		if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
-			System.out.println("Player has right clicked.");
 			
 			if (dh.hasAggressiveAbility(i, "Fire Breath")) {
-				System.out.println("Player's current item is confirmed to have Fire Breath.");
 				
 				fireBreath(p, dh.getAggressiveAbilityLevel(i), i);
 				System.out.println("Fire Breath has finished.");
@@ -97,11 +95,15 @@ public class FireBreath implements Listener {
 	private void animation(Player p, int distance, int burnTime) {
 		System.out.println("The animation for Fire Breath had been started with a distance of " + distance + " blocks and a burn duration of " + burnTime + " ticks.");
 		
+		System.out.println("Getting the list of blocks...");
 		final List<Block> blockList = getBlocks(p, distance);
+		System.out.println("List of blocks has been retreived.");
 		
+		System.out.println("Setting a couple variables...");
 		final int howManyBlocks = blockList.size();
 		
 		final Player pClone = p;
+		System.out.println("Variables set.");
 		
 		
 		
@@ -112,9 +114,14 @@ public class FireBreath implements Listener {
 			int currentBlock = 0;
 			
 			public void run() {
+				System.out.println("Running. Current block is " + currentBlock);
 				
 				if (currentBlock < howManyBlocks) {
+					System.out.println("The current block is less than the total. Making a pretty fireball.");
+					
 					ParticleEffect.FLAME.display(blockList.get(currentBlock).getLocation(), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 100);
+					
+					System.out.println("Pretty fireball created.");
 					
 					currentBlock += 1;
 				} else {
@@ -137,13 +144,15 @@ public class FireBreath implements Listener {
 		System.out.println("blockiterator has been created");
 		
 		while (blocks.hasNext()) {
-			if (blocks.next().getType() == Material.AIR) {
+			System.out.println("There is another block to check.");
 				
-				list.add(blocks.next());
-				System.out.println("block has been added to list");
-			}
+			System.out.println("Adding the block...");
+			list.add(blocks.next());
+			System.out.println("block has been added to list");
+			
 		}
 		
+		System.out.println("Iterator has finished. Returning with the list.");
 		return list;
 	}
 
