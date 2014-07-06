@@ -42,16 +42,21 @@ public class FireBreath implements Listener {
 	@EventHandler
 	public void clickListener(PlayerInteractEvent event) {
 		Player p = event.getPlayer();
-		ItemStack i = p.getItemInHand();
+		//ALWAYS USE event.getItem();
+		ItemStack i = event.getItem();
 		
 		if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
+			System.out.println("Player has right clicked.");
 			
 			if (dh.hasAggressiveAbility(i, "Fire Breath")) {
+				System.out.println("Player's current item is confirmed to have Fire Breath.");
+				
 				fireBreath(p, dh.getAggressiveAbilityLevel(i), i);
+				System.out.println("Fire Breath has finished.");
 			}
 			
-			
 		}
+		return;
 	}
 	
 	

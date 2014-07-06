@@ -3,6 +3,7 @@ package io.github.secondflight.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -55,15 +56,32 @@ public class DescriptionHandler
 	
 	// returns true if the item has the aggressive ability
 		public boolean hasAggressiveAbility (ItemStack i, String aggressiveAbility) {
-			ItemMeta m = i.getItemMeta();
-			String abilityLine = m.getLore().get(aggressiveAbilityPos);
+			System.out.println("Checking if the player has " + aggressiveAbility + "...");
 			
-			String ability = abilityLine.substring(20, abilityLine.length()-2);
-			if (ability.equalsIgnoreCase(aggressiveAbility)) {
-				return true;
-			} else {
-				return false;
+			if (!(i == null)) {
+				ItemMeta m = i.getItemMeta();
+				System.out.println("The item's meta has been assigned to m.");
+			
+			
+				if (m.hasLore() && m.getLore().size() >= aggressiveAbilityPos) {
+					System.out.println("The lore line that should contain the aggressive ability is not null.");
+				
+					String abilityLine = m.getLore().get(aggressiveAbilityPos);
+					System.out.println("That lore line has been assigned to string abilityLine.");
+			
+				
+					String ability = abilityLine.substring(20, abilityLine.length()-2);
+					System.out.println("A substring of abilityLine has been assigned to ability");
+				
+					if (ability.equalsIgnoreCase(aggressiveAbility)) {
+						System.out.println("The item has " + aggressiveAbility + ".");
+						return true;
+					}
+				}
 			}
+			
+			System.out.println("The item does not have " + aggressiveAbility + ".");
+			return false;
 			
 			
 		}
@@ -101,17 +119,23 @@ public class DescriptionHandler
 			return level;
 		}
 		
-	// returns true if the item has the aggressive ability
+	// returns true if the item has the passive ability
 			public boolean hasPassiveAbility (ItemStack i, String passiveAbility) {
-				ItemMeta m = i.getItemMeta();
-				String abilityLine = m.getLore().get(passiveAbilityPos);
+				if (!(i == null)) {
+					ItemMeta m = i.getItemMeta();
+					if (m.hasLore() && m.getLore().size() >= passiveAbilityPos) {
+						String abilityLine = m.getLore().get(passiveAbilityPos);
+				
 					
-				String ability = abilityLine.substring(17, abilityLine.length()-2);
-				if (ability.equalsIgnoreCase(passiveAbility)) {
-					return true;
-				} else {
-					return false;
+						String ability = abilityLine.substring(20, abilityLine.length()-2);
+						if (ability.equalsIgnoreCase(passiveAbility)) {
+							return true;
+						}
+					}
 				}
+				
+				return false;
+				
 					
 					
 			}
