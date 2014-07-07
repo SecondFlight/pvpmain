@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -18,7 +19,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BlockIterator;
+import org.bukkit.util.Vector;
 
 	
 
@@ -26,7 +31,7 @@ import org.bukkit.util.BlockIterator;
 
 public class FireBreath implements Listener {
 	
-	int fireBreathAnimationTask;
+	Map<Integer, Integer> fireBreathTask = new HashMap<Integer, Integer>();
 	
 	public static Map<Player, Integer> fireBreathCooldown = new HashMap<Player, Integer>();
 	
@@ -96,63 +101,49 @@ public class FireBreath implements Listener {
 		System.out.println("The animation for Fire Breath had been started with a distance of " + distance + " blocks and a burn duration of " + burnTime + " ticks.");
 		
 		System.out.println("Getting the list of blocks...");
-		final List<Block> blockList = getBlocks(p, distance);
+		final List<Location> locationList = getLocations(p, distance);
 		System.out.println("List of blocks has been retreived.");
 		
-		System.out.println("Setting a couple variables...");
-		final int howManyBlocks = blockList.size();
+
 		
-		final Player pClone = p;
-		System.out.println("Variables set.");
+		BukkitTask task = new FireBreathTask((JavaPlugin) plugin, locationList).runTaskTimer(this.plugin, 0, 3);
 		
 		
-		
-		
-		System.out.println("Iterator has come up with " + (howManyBlocks + 1) + " blocks.");
-		
-		fireBreathAnimationTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-			int currentBlock = 0;
-			
-			public void run() {
-				System.out.println("Running. Current block is " + currentBlock);
-				
-				if (currentBlock < howManyBlocks) {
-					System.out.println("The current block is less than the total. Making a pretty fireball.");
-					
-					ParticleEffect.FLAME.display(blockList.get(currentBlock).getLocation(), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 100);
-					
-					System.out.println("Pretty fireball created.");
-					
-					currentBlock += 1;
-				} else {
-					Bukkit.getScheduler().cancelTask(fireBreathAnimationTask);
-				}
-				
-				}
-			}, 0L, 5L);
 		
 		
 	}
 	
-	private List<Block> getBlocks (Player p, int distance) {
-		System.out.println("getBlocks has been called.");
+	private List<Location> getLocations (Player p, int distance) {
+		Location l = p.getLocation().add(0, 1, 0);
+		Vector v = p.getLocation().getDirection().normalize();
 		
-		List<Block> list = new ArrayList<Block>();
+		List<Location> list = new ArrayList<Location>();
 		
-		BlockIterator blocks = new BlockIterator(p.getWorld(), p.getLocation().toVector(), p.getLocation().getDirection().normalize(), 0, distance);
-		
-		System.out.println("blockiterator has been created");
-		
-		while (blocks.hasNext()) {
-			System.out.println("There is another block to check.");
-				
-			System.out.println("Adding the block...");
-			list.add(blocks.next());
-			System.out.println("block has been added to list");
-			
+		Location pl = p.getEyeLocation();
+
+		double px = pl.getX();
+		double py = pl.getY();
+		double pz = pl.getZ();
+
+		double yaw = Math.toRadians(pl.getYaw() + 90);
+		double pitch = Math.toRadians(pl.getPitch() + 90);
+
+		double x = Math.sin(pitch) * Math.cos(yaw);
+		double y = Math.sin(pitch) * Math.sin(yaw);
+		double z = Math.cos(pitch);
+
+		for (int i = 1; i <= distance; i++) {
+			Location loc = new Location(p.getWorld(), px + i * x, py + i * z, pz + i * y);
+			if (loc.getBlock().getType() == Material.AIR) {
+				list.add(loc);
+			}
 		}
 		
-		System.out.println("Iterator has finished. Returning with the list.");
+		//BlockIterator blocks = new BlockIterator(p.getWorld(), p.getLocation().toVector(), p.getLocation().getDirection().normalize(), 0, distance);
+		
+
+		
+		System.out.println("getLocations has finished. Returning with the list.");
 		return list;
 	}
 
@@ -203,4 +194,41 @@ public class FireBreath implements Listener {
 	
 
 	}
+}
+
+class FireBreathTask extends BukkitRunnable  {
+	private final JavaPlugin plugin;
+	
+	List <Location> locationList;
+	int howManyLocations;
+	
+	FireBreathTask(JavaPlugin plugin, List<Location> locations)	{
+		this.plugin = plugin;
+		locationList = locations;
+		howManyLocations = locationList.size();
+	}
+	
+	int currentBlock = 0;
+		
+
+		
+		
+		public void run() {
+			System.out.println("Running. Current block is " + currentBlock);
+			
+			if (currentBlock < howManyLocations) {
+				System.out.println("The current block is less than the total. Making a pretty fireball.");
+				System.out.println("Fireball will be at " + locationList.get(currentBlock).getX() + ", " + locationList.get(currentBlock).getY() + ", " + locationList.get(currentBlock).getZ() + "." );
+				
+				ParticleEffect.FLAME.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 100);
+				
+				System.out.println("Pretty fireball created.");
+				
+				currentBlock += 1;
+			} else {
+				this.cancel();
+			}
+			
+		}
+	//}, 0L, 5L));
 }
