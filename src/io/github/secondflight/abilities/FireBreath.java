@@ -9,9 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -106,7 +110,7 @@ public class FireBreath implements Listener {
 		
 
 		
-		BukkitTask task = new FireBreathTask((JavaPlugin) plugin, locationList).runTaskTimer(this.plugin, 0, 3);
+		BukkitTask task = new FireBreathTask((JavaPlugin) plugin, locationList, p, distance, burnTime).runTaskTimer(this.plugin, 0, 3);
 		
 		
 		
@@ -132,14 +136,25 @@ public class FireBreath implements Listener {
 		double y = Math.sin(pitch) * Math.sin(yaw);
 		double z = Math.cos(pitch);
 
+		BlockIterator blocks = new BlockIterator(p.getWorld(), p.getLocation().toVector(), p.getLocation().getDirection().normalize(), 0, distance);
+		
 		for (int i = 1; i <= distance; i++) {
-			Location loc = new Location(p.getWorld(), px + i * x, py + i * z, pz + i * y);
-			if (loc.getBlock().getType() == Material.AIR) {
-				list.add(loc);
-			}
+			//Block b = blocks.next();
+			//if (blocks.hasNext() && !(b.getType().isSolid()) && (b.getType() == Material.GLASS))	{
+				Location loc = new Location(p.getWorld(), px + i * x, py + i * z, pz + i * y);
+				if (!(loc.getBlock().getType().isSolid()) && !(loc.getBlock().getType() == Material.GLASS)) {
+					// spaces out the particles to make them move twice as fast
+					// sorta hacky, I know
+					if ((i & 1) == 0) {
+						list.add(loc);
+					}
+				} else {
+					break;
+				}
+			//}
+		
 		}
 		
-		//BlockIterator blocks = new BlockIterator(p.getWorld(), p.getLocation().toVector(), p.getLocation().getDirection().normalize(), 0, distance);
 		
 
 		
@@ -194,18 +209,30 @@ public class FireBreath implements Listener {
 	
 
 	}
+	
+
 }
 
 class FireBreathTask extends BukkitRunnable  {
 	private final JavaPlugin plugin;
 	
 	List <Location> locationList;
+	List <Entity> entities = new ArrayList <Entity>();
 	int howManyLocations;
+	Player p;
+	int radius;
+	int burnTime;
 	
-	FireBreathTask(JavaPlugin plugin, List<Location> locations)	{
+	FireBreathTask(JavaPlugin plugin, List<Location> locations, Player p, int distance, int burnTime)	{
 		this.plugin = plugin;
 		locationList = locations;
 		howManyLocations = locationList.size();
+		this.p = p;
+		for (Entity e : p.getNearbyEntities(distance + 2, distance + 2, distance + 2)) {
+			entities.add(e);
+		}
+		radius = 2;
+		this.burnTime = burnTime;
 	}
 	
 	int currentBlock = 0;
@@ -220,10 +247,32 @@ class FireBreathTask extends BukkitRunnable  {
 				System.out.println("The current block is less than the total. Making a pretty fireball.");
 				System.out.println("Fireball will be at " + locationList.get(currentBlock).getX() + ", " + locationList.get(currentBlock).getY() + ", " + locationList.get(currentBlock).getZ() + "." );
 				
-				ParticleEffect.FLAME.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 100);
+				ParticleEffect.FLAME.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 60);
+				ParticleEffect.SMOKE.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 15);
 				
 				System.out.println("Pretty fireball created.");
 				
+				System.out.println("Applying damage and setting fire to applicable entities...");
+				if (entities == null) {
+					this.cancel();
+				}
+				
+				if (!(entities.isEmpty())) {
+					System.out.println("Entities is not empty. Going through each entity...");
+					for (Entity e : entities) {
+						System.out.println("This entity is a " + e.getType().name().toString());
+						if ((e instanceof LivingEntity || e instanceof Player) && !(e.equals(p))) {
+							System.out.println("This " + e.getType().name().toString() + " is a LivingEntity");
+							LivingEntity ent = (LivingEntity) e;
+							if (e.getLocation().distanceSquared(locationList.get(currentBlock)) < (radius*radius)) {
+								System.out.println(ChatColor.AQUA + "This entity needs to be damaged.");
+								ent.damage(2);
+								e.setFireTicks(burnTime);
+							}
+						}
+					}
+				}
+					
 				currentBlock += 1;
 			} else {
 				this.cancel();
