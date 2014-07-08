@@ -57,7 +57,7 @@ public class FireBreath implements Listener {
 		if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 			
 			if (dh.hasAggressiveAbility(i, "Fire Breath")) {
-				
+				if (fireBreathCooldown.get(p) == null)
 				fireBreath(p, dh.getAggressiveAbilityLevel(i), i);
 				System.out.println("Fire Breath has finished.");
 			}
@@ -73,7 +73,7 @@ public class FireBreath implements Listener {
 		
 		int fireDuration = 0;
 		int breathDuration = 0;
-		
+		int cooldown = 200;
 		
 		if (level == 1) {
 			fireDuration = 60;
@@ -94,28 +94,163 @@ public class FireBreath implements Listener {
 		
 		
 		
-		System.out.println("Fire duration: " + fireDuration + " ticks");
-		System.out.println("Breath duration: " + breathDuration + " ticks");
 		
-		animation(p, 20, fireDuration);
+		animation(p, 20, fireDuration, breathDuration, cooldown);
 		
 		}
 	
-	private void animation(Player p, int distance, int burnTime) {
-		System.out.println("The animation for Fire Breath had been started with a distance of " + distance + " blocks and a burn duration of " + burnTime + " ticks.");
+	private void animation(Player p, int distance, int burnTime, int breathDuration, int cooldown) {
 		
-		System.out.println("Getting the list of blocks...");
-		final List<Location> locationList = getLocations(p, distance);
-		System.out.println("List of blocks has been retreived.");
+		BukkitTask task = new FireBreathCallTask((JavaPlugin) plugin, p, distance, burnTime, breathDuration, 5).runTaskTimer(this.plugin, 0, 5);
+		durabilityTimer(p.getItemInHand(), cooldown, p);
+	}
+	
+
+
+
+	int task1;
+
+	private void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
+	//player.sendMessage("durabilityTimer has been called");
+	
+		
+		
+		
+		
+		
+		item.setDurability(item.getType().getMaxDurability());
+		
+		task1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
+			
+			
+			short maxDurability = item.getType().getMaxDurability();
+			short durability = maxDurability;
+			short interval = (short)Math.round(maxDurability/(ticks / 20));
+			int iterations = Math.round(ticks/20);
+			
+			
+			
+			public void run() {
+				
+				durability = (short) (durability - interval);
+				item.setDurability(durability);
+				iterations = iterations - 1;
+				
+				FireBreath.fireBreathCooldown.put(player, iterations*20);
+				
+				if (!(iterations > 0)) {
+					item.setDurability((short)0);
+					Bukkit.getScheduler().cancelTask(task1);
+					
+					FireBreath.fireBreathCooldown.put(player, null);
+				}
+				
+				}
+			}, 0L, 20L);
+	
+	
+	
+
+	}
+	
+
+}
+
+class FireBreathTask extends BukkitRunnable  {
+	private final JavaPlugin plugin;
+	
+	List <Location> locationList;
+	List <Entity> entities = new ArrayList <Entity>();
+	int howManyLocations;
+	Player p;
+	int radius;
+	int burnTime;
+	
+	FireBreathTask(JavaPlugin plugin, List<Location> locations, Player p, int distance, int burnTime)	{
+		this.plugin = plugin;
+		locationList = locations;
+		howManyLocations = locationList.size();
+		this.p = p;
+		for (Entity e : p.getNearbyEntities(distance + 2, distance + 2, distance + 2)) {
+			entities.add(e);
+		}
+		radius = 2;
+		this.burnTime = burnTime;
+	}
+	
+	int currentBlock = 0;
 		
 
 		
-		BukkitTask task = new FireBreathTask((JavaPlugin) plugin, locationList, p, distance, burnTime).runTaskTimer(this.plugin, 0, 3);
 		
+		public void run() {
+			//System.out.println("Running. Current block is " + currentBlock);
+			
+			if (currentBlock < howManyLocations) {
+				//System.out.println("The current block is less than the total. Making a pretty fireball.");
+				//System.out.println("Fireball will be at " + locationList.get(currentBlock).getX() + ", " + locationList.get(currentBlock).getY() + ", " + locationList.get(currentBlock).getZ() + "." );
+				
+				ParticleEffect.FLAME.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 60);
+				ParticleEffect.SMOKE.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 15);
+				
+				//System.out.println("Pretty fireball created.");
+				
+				//System.out.println("Applying damage and setting fire to applicable entities...");
+				if (entities == null) {
+					this.cancel();
+				}
+				
+				if (!(entities.isEmpty())) {
+					//System.out.println("Entities is not empty. Going through each entity...");
+					for (Entity e : entities) {
+						//System.out.println("This entity is a " + e.getType().name().toString());
+						if ((e instanceof LivingEntity || e instanceof Player) && !(e.equals(p))) {
+							//System.out.println("This " + e.getType().name().toString() + " is a LivingEntity");
+							LivingEntity ent = (LivingEntity) e;
+							if (e.getLocation().distanceSquared(locationList.get(currentBlock)) < (radius*radius)) {
+								//System.out.println(ChatColor.AQUA + "This entity needs to be damaged.");
+								ent.damage(2);
+								e.setFireTicks(burnTime);
+							}
+						}
+					}
+				}
+					
+				currentBlock += 1;
+			} else {
+				this.cancel();
+			}
+			
+		}
+	//}, 0L, 5L));
+}
+
+class FireBreathCallTask extends BukkitRunnable  {
+	private final JavaPlugin plugin;
+	List <Entity> entities = new ArrayList <Entity>();
+	Player p;
+	int radius;
+	int burnTime;
+	int distance;
+	int breathDuration;
+	int iterations;
+	int ticksBetweenBreath;
+	
+	FireBreathCallTask(JavaPlugin plugin, Player p, int distance, int burnTime, int breathDuration, int ticksBetweenBreath)	{
+		this.plugin = plugin;
+		this.p = p;
+		this.distance = distance;
+		this.burnTime = burnTime;
+		this.breathDuration = breathDuration;
+		this.ticksBetweenBreath = ticksBetweenBreath;
+		this.iterations = Math.round(breathDuration / ticksBetweenBreath);
+		//System.out.println("The animation for Fire Breath had been started with a distance of " + distance + " blocks and a burn duration of " + burnTime + " ticks.");
+
 		
 		
 		
 	}
+	
 	
 	private List<Location> getLocations (Player p, int distance) {
 		Location l = p.getLocation().add(0, 1, 0);
@@ -158,126 +293,24 @@ public class FireBreath implements Listener {
 		
 
 		
-		System.out.println("getLocations has finished. Returning with the list.");
+		//System.out.println("getLocations has finished. Returning with the list.");
 		return list;
 	}
-
-
-	int task1;
-
-	private void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
-	//player.sendMessage("durabilityTimer has been called");
-	
-		
-		
-		
-		
-		
-		item.setDurability(item.getType().getMaxDurability());
-		
-		task1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-			
-			
-			short maxDurability = item.getType().getMaxDurability();
-			short durability = maxDurability;
-			short interval = (short)Math.round(maxDurability/(ticks / 100));
-			int iterations = Math.round(ticks/100);
-			
-			
-			
-			public void run() {
-				
-				durability = (short) (durability - interval);
-				item.setDurability(durability);
-				iterations = iterations - 1;
-				
-				FireBreath.fireBreathCooldown.put(player, iterations*100);
-				
-				player.sendMessage(Integer.toString(iterations));
-				
-				if (!(iterations > 0)) {
-					item.setDurability((short)0);
-					Bukkit.getScheduler().cancelTask(task1);
-					
-					FireBreath.fireBreathCooldown.put(player, 0);
-				}
-				
-				}
-			}, 0L, 100L);
 	
 	
+	int currentIteration = 1;
 	
-
+	
+	public void run() {
+		
+		if (currentIteration <= iterations) {
+			BukkitTask task = new FireBreathTask((JavaPlugin) plugin, getLocations(p, distance), p, distance, burnTime).runTaskTimer(this.plugin, 0, 3);
+			currentIteration ++;
+			//p.sendMessage(Integer.toString(currentIteration));
+		} else {
+			this.cancel();
+		}
+		
 	}
-	
-
 }
 
-class FireBreathTask extends BukkitRunnable  {
-	private final JavaPlugin plugin;
-	
-	List <Location> locationList;
-	List <Entity> entities = new ArrayList <Entity>();
-	int howManyLocations;
-	Player p;
-	int radius;
-	int burnTime;
-	
-	FireBreathTask(JavaPlugin plugin, List<Location> locations, Player p, int distance, int burnTime)	{
-		this.plugin = plugin;
-		locationList = locations;
-		howManyLocations = locationList.size();
-		this.p = p;
-		for (Entity e : p.getNearbyEntities(distance + 2, distance + 2, distance + 2)) {
-			entities.add(e);
-		}
-		radius = 2;
-		this.burnTime = burnTime;
-	}
-	
-	int currentBlock = 0;
-		
-
-		
-		
-		public void run() {
-			System.out.println("Running. Current block is " + currentBlock);
-			
-			if (currentBlock < howManyLocations) {
-				System.out.println("The current block is less than the total. Making a pretty fireball.");
-				System.out.println("Fireball will be at " + locationList.get(currentBlock).getX() + ", " + locationList.get(currentBlock).getY() + ", " + locationList.get(currentBlock).getZ() + "." );
-				
-				ParticleEffect.FLAME.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 60);
-				ParticleEffect.SMOKE.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 15);
-				
-				System.out.println("Pretty fireball created.");
-				
-				System.out.println("Applying damage and setting fire to applicable entities...");
-				if (entities == null) {
-					this.cancel();
-				}
-				
-				if (!(entities.isEmpty())) {
-					System.out.println("Entities is not empty. Going through each entity...");
-					for (Entity e : entities) {
-						System.out.println("This entity is a " + e.getType().name().toString());
-						if ((e instanceof LivingEntity || e instanceof Player) && !(e.equals(p))) {
-							System.out.println("This " + e.getType().name().toString() + " is a LivingEntity");
-							LivingEntity ent = (LivingEntity) e;
-							if (e.getLocation().distanceSquared(locationList.get(currentBlock)) < (radius*radius)) {
-								System.out.println(ChatColor.AQUA + "This entity needs to be damaged.");
-								ent.damage(2);
-								e.setFireTicks(burnTime);
-							}
-						}
-					}
-				}
-					
-				currentBlock += 1;
-			} else {
-				this.cancel();
-			}
-			
-		}
-	//}, 0L, 5L));
-}
