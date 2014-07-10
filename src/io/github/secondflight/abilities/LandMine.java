@@ -21,6 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -88,11 +89,17 @@ public class LandMine implements Listener{
 	}
 	
 	@EventHandler
-	public void entityChangeblockEvent (EntityChangeBlockEvent event) {
-		if (event.getEntity() instanceof LivingEntity) {
-			if (!(mineMap.get(event.getBlock()) == null)) {
-				explodeMine (event.getBlock(), event.getEntity(), 5);
+	public void entityInteractEvent (EntityInteractEvent event) {
+		System.out.println("An entity has interacted with something.");
+		System.out.println("The block is " + event.getBlock().getType().name().toString() + ".");
+		if (event.getBlock().getType() == Material.STONE_PLATE) {
+			Block b = event.getBlock();
+			
+			if (!(getMinePlacer(b) == null)) {
+				System.out.println("Mine will now be explodified.");
+				explodeMine(b, event.getEntity(), 5);
 			}
+			
 		}
 	}
 	
@@ -104,7 +111,7 @@ public class LandMine implements Listener{
 	
 	private static void registerNewMine (Player p, Block b, int minesAllowed) {
 		Block blockAbove = b.getLocation().add(0, 1, 0).getBlock();
-		if (blockAbove.getType() == Material.AIR) {
+		if (blockAbove.getType() == Material.AIR && b.getType().isSolid()) {
 			System.out.println("The block being checked is air. The mine will now be created.");
 			
 			System.out.println("Setting the block to a stone pressure plate...");
@@ -115,7 +122,7 @@ public class LandMine implements Listener{
 			mineMap.put(blockAbove, p);
 			System.out.println("Done.");
 
-			System.out.println("Retrieving list... of mines for the player...");
+			System.out.println("Retrieving list of mines for the player...");
 			List<Block> list = listMap.get(p);
 			System.out.println("Done.");
 			
@@ -197,7 +204,7 @@ public class LandMine implements Listener{
 	 * @return
 	 */
 	private static Player getMinePlacer (Block b) {
-		if (mineMap.containsValue(b)) {
+		if (mineMap.containsKey(b)) {
 			return mineMap.get(b);
 		} else {
 			return null;
@@ -208,10 +215,14 @@ public class LandMine implements Listener{
 		ParticleEffect.HUGE_EXPLOSION.display(l, 0, 0, 0, 0, 1);
 		l.getWorld().playSound(l, Sound.EXPLODE, 10, 1);
 		
+		System.out.println("Damaging entities...");
 		for (Entity e : ent.getNearbyEntities(radius, radius, radius)) {
+			System.out.println("This entity is a " + e.getType().name().toString() + ".");
 			if (e instanceof LivingEntity) {
+				System.out.println("This is a living entity.");
 				((LivingEntity) e).damage(8);
 			}
+			((LivingEntity) ent).damage(8);
 		}
 	}
 	
