@@ -338,9 +338,9 @@ public class DescriptionHandler
 	
 	
 	
-	public static String[] aggressiveList = {"Health Steal", "Fire Breath", "Land Mines"};
+	public static String[] aggressiveList = {"Invisibility", "Health Steal"};
 	
-	public static String[] aggressiveListRare = {"Invisibility"};
+	public static String[] aggressiveListRare = {"Fire Breath", "Land Mines", "Lightning Strike"};
 	
 	public static String[] passiveList = {"Regen"};
 	
