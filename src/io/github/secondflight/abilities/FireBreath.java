@@ -9,12 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,7 +23,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
 	
@@ -190,7 +186,7 @@ class FireBreathTask extends BukkitRunnable  {
 				//System.out.println("The current block is less than the total. Making a pretty fireball.");
 				//System.out.println("Fireball will be at " + locationList.get(currentBlock).getX() + ", " + locationList.get(currentBlock).getY() + ", " + locationList.get(currentBlock).getZ() + "." );
 				
-				ParticleEffect.FLAME.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 60);
+				ParticleEffect.FLAME.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 20);
 				ParticleEffect.SMOKE.display(locationList.get(currentBlock), (float)0.2, (float)0.2, (float)0.2, (float)0.1, 15);
 				
 				//System.out.println("Pretty fireball created.");
@@ -222,7 +218,6 @@ class FireBreathTask extends BukkitRunnable  {
 			}
 			
 		}
-	//}, 0L, 5L));
 }
 
 class FireBreathCallTask extends BukkitRunnable  {
@@ -258,7 +253,7 @@ class FireBreathCallTask extends BukkitRunnable  {
 		
 		List<Location> list = new ArrayList<Location>();
 		
-		Location pl = p.getEyeLocation();
+		Location pl = p.getEyeLocation().subtract(0, 0.5, 0);
 
 		double px = pl.getX();
 		double py = pl.getY();
@@ -270,12 +265,8 @@ class FireBreathCallTask extends BukkitRunnable  {
 		double x = Math.sin(pitch) * Math.cos(yaw);
 		double y = Math.sin(pitch) * Math.sin(yaw);
 		double z = Math.cos(pitch);
-
-		BlockIterator blocks = new BlockIterator(p.getWorld(), p.getLocation().toVector(), p.getLocation().getDirection().normalize(), 0, distance);
 		
 		for (int i = 1; i <= distance; i++) {
-			//Block b = blocks.next();
-			//if (blocks.hasNext() && !(b.getType().isSolid()) && (b.getType() == Material.GLASS))	{
 				Location loc = new Location(p.getWorld(), px + i * x, py + i * z, pz + i * y);
 				if (!(loc.getBlock().getType().isSolid()) && !(loc.getBlock().getType() == Material.GLASS)) {
 					// spaces out the particles to make them move twice as fast
@@ -286,7 +277,6 @@ class FireBreathCallTask extends BukkitRunnable  {
 				} else {
 					break;
 				}
-			//}
 		
 		}
 		
