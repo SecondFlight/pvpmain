@@ -12,13 +12,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.inventory.ItemStack;
 
 public class Invisibility implements Listener {
-	
-	public static Map<Player, Integer> invisibilityCooldown = new HashMap<Player, Integer>();
 	
 	private final Plugin plugin;
 	
@@ -58,68 +59,84 @@ public class Invisibility implements Listener {
 			duration = 400;
 		}
 		
-		if (invisibilityCooldown.get(player) == null) {
-			invisibilityCooldown.put(player, 0);
+		if (invisDurabilityTimer.cooldownMap.get(player) == null) {
+			invisDurabilityTimer.cooldownMap.put(player, 0);
 		}
 		
-		if (invisibilityCooldown.get(player) == 0) {
+		if (invisDurabilityTimer.cooldownMap.get(player) == 0) {
 			player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, duration, 1, true));
 			
 			
 			durabilityTimer(i, cooldown, player);
 			
-		} /** else if (invisibilityCooldown.get(player) > 0) {
-			
-			
-			player.sendMessage(ChatColor.RED + "You need to wait " + ChatColor.WHITE + Math.ceil((invisibilityCooldown.get(player)/20)) + ChatColor.RED + " more seconds before you can use invisibility again.");
-			
-		}*/
+		} 
 	}
 	
-	int task1;
+
 	
 	private void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
 		//player.sendMessage("durabilityTimer has been called");
 		
+		int ticksBetween = 100;	
+		BukkitTask task = new invisDurabilityTimer ((JavaPlugin) plugin, item, player, ticks, ticksBetween).runTaskTimer(this.plugin, 0, ticksBetween);
 			
 			
 			
-			
-			
-			item.setDurability(item.getType().getMaxDurability());
-			
-			task1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-				
-				
-				short maxDurability = item.getType().getMaxDurability();
-				short durability = maxDurability;
-				short interval = (short)Math.round(maxDurability/(ticks / 100));
-				int iterations = Math.round(ticks/100);
-				
-				
-				
-				public void run() {
-					
-					durability = (short) (durability - interval);
-					item.setDurability(durability);
-					iterations = iterations - 1;
-					
-					Invisibility.invisibilityCooldown.put(player, iterations*100);
-					
-					player.sendMessage(Integer.toString(iterations));
-					
-					if (!(iterations > 0)) {
-						item.setDurability((short)0);
-						Bukkit.getScheduler().cancelTask(task1);
-						
-						Invisibility.invisibilityCooldown.put(player, 0);
-					}
-					
-					}
-				}, 0L, 100L);
+
 		
 		
 		
 	
+		}
+}
+
+class invisDurabilityTimer extends BukkitRunnable {
+	private final JavaPlugin plugin;
+	
+	short maxDurability;
+	short durability;
+	short interval;
+	int iterations;
+	int ticksBetween;
+	ItemStack item;
+	Player player;
+	
+	public static Map<Player, Integer> cooldownMap = new HashMap<Player, Integer>();
+	
+	
+	public invisDurabilityTimer (JavaPlugin plugin, ItemStack i, Player p, int ticks, int ticksBetween) {	
+		this.plugin = plugin;
+		
+		this.ticksBetween = ticksBetween;
+		
+		item = i;
+		player = p;
+		
+		maxDurability = item.getType().getMaxDurability();
+		durability = maxDurability;
+		interval = (short)Math.round(maxDurability/(ticks / ticksBetween));
+		iterations = Math.round(ticks/ticksBetween);
+		
+		item.setDurability(item.getType().getMaxDurability());
+		
+	}	
+		
+
+
+		public void run() {
+			
+			durability = (short) (durability - interval);
+			item.setDurability(durability);
+			iterations = iterations - 1;
+			
+			cooldownMap.put(player, iterations*ticksBetween);
+			
+			if (!(iterations > 0)) {
+				item.setDurability((short)0);
+				this.
+				
+				cooldownMap.put(player, null);
+			}
+			
 		}
 }

@@ -33,7 +33,7 @@ public class FireBreath implements Listener {
 	
 	Map<Integer, Integer> fireBreathTask = new HashMap<Integer, Integer>();
 	
-	public static Map<Player, Integer> fireBreathCooldown = new HashMap<Player, Integer>();
+	
 	
 	private final Plugin plugin;
 	
@@ -53,7 +53,7 @@ public class FireBreath implements Listener {
 		if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 			
 			if (dh.hasAggressiveAbility(i, "Fire Breath")) {
-				if (fireBreathCooldown.get(p) == null)
+				if (fireBreathDurabilityTimer.cooldownMap.get(p) == null)
 				fireBreath(p, dh.getAggressiveAbilityLevel(i), i);
 				System.out.println("Fire Breath has finished.");
 			}
@@ -104,45 +104,17 @@ public class FireBreath implements Listener {
 
 
 
-	int task1;
 
 	private void durabilityTimer (final ItemStack item, final int ticks, final Player player) {
 	//player.sendMessage("durabilityTimer has been called");
 	
 		
+		int ticksBetween = 20;
+		BukkitTask task = new fireBreathDurabilityTimer((JavaPlugin) plugin, item, player, ticks, ticksBetween).runTaskTimer(this.plugin, 0, 20);
 		
 		
 		
 		
-		item.setDurability(item.getType().getMaxDurability());
-		
-		task1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-			
-			
-			short maxDurability = item.getType().getMaxDurability();
-			short durability = maxDurability;
-			short interval = (short)Math.round(maxDurability/(ticks / 20));
-			int iterations = Math.round(ticks/20);
-			
-			
-			
-			public void run() {
-				
-				durability = (short) (durability - interval);
-				item.setDurability(durability);
-				iterations = iterations - 1;
-				
-				FireBreath.fireBreathCooldown.put(player, iterations*20);
-				
-				if (!(iterations > 0)) {
-					item.setDurability((short)0);
-					Bukkit.getScheduler().cancelTask(task1);
-					
-					FireBreath.fireBreathCooldown.put(player, null);
-				}
-				
-				}
-			}, 0L, 20L);
 	
 	
 	
@@ -303,4 +275,54 @@ class FireBreathCallTask extends BukkitRunnable  {
 		
 	}
 }
+
+class fireBreathDurabilityTimer extends BukkitRunnable {
+	private final JavaPlugin plugin;
+	
+	short maxDurability;
+	short durability;
+	short interval;
+	int iterations;
+	int ticksBetween;
+	ItemStack item;
+	Player player;
+	
+	public static Map<Player, Integer> cooldownMap = new HashMap<Player, Integer>();
+	
+	
+	public fireBreathDurabilityTimer (JavaPlugin plugin, ItemStack i, Player p, int ticks, int ticksBetween) {	
+		this.plugin = plugin;
+		
+		this.ticksBetween = ticksBetween;
+		
+		item = i;
+		player = p;
+		
+		maxDurability = item.getType().getMaxDurability();
+		durability = maxDurability;
+		interval = (short)Math.round(maxDurability/(ticks / ticksBetween));
+		iterations = Math.round(ticks/ticksBetween);
+		
+		item.setDurability(item.getType().getMaxDurability());
+		
+	}	
+		
+		public void run() {
+			
+			durability = (short) (durability - interval);
+			item.setDurability(durability);
+			iterations = iterations - 1;
+			
+			cooldownMap.put(player, iterations*ticksBetween);
+			
+			if (!(iterations > 0)) {
+				item.setDurability((short)0);
+				this.
+				
+				cooldownMap.put(player, null);
+			}
+			
+		}
+}
+
 

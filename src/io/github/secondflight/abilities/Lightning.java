@@ -2,7 +2,9 @@ package io.github.secondflight.abilities;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.github.secondflight.util.DescriptionHandler;
 
@@ -14,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -41,8 +44,12 @@ public class Lightning implements Listener {
 					case 3: radius = 12; strikes = 7; break;
 				}
 				
-				lightningStrike (event.getPlayer(), radius, strikes);
-				
+				if (lightningDurabilityTimer.cooldownMap.get(event.getPlayer()) == null) {
+					lightningStrike (event.getPlayer(), radius, strikes);
+					
+					int ticksBetween = 20;
+					BukkitTask task = new lightningDurabilityTimer((JavaPlugin) plugin, event.getItem(), event.getPlayer(), 160, 20).runTaskTimer(this.plugin, 0, ticksBetween);
+				}
 			}
 		}
 	}
@@ -106,7 +113,7 @@ class LightningTask extends BukkitRunnable  {
 	List<Location> locations;
 	List<Boolean> fireOnTick = new ArrayList<Boolean>();
 	
-	int numberOfBlanksToAdd;
+	int numberOfBlanksToAdd = 35;
 	
 	LightningTask (JavaPlugin plugin, List<Location> locs) {
 		System.out.println("Got to creation of task");
@@ -155,4 +162,53 @@ class LightningTask extends BukkitRunnable  {
 		currentFireOnTick ++;
 		
 	}
+}
+
+class lightningDurabilityTimer extends BukkitRunnable {
+	private final JavaPlugin plugin;
+	
+	short maxDurability;
+	short durability;
+	short interval;
+	int iterations;
+	int ticksBetween;
+	ItemStack item;
+	Player player;
+	
+	public static Map<Player, Integer> cooldownMap = new HashMap<Player, Integer>();
+	
+	
+	public lightningDurabilityTimer (JavaPlugin plugin, ItemStack i, Player p, int ticks, int ticksBetween) {	
+		this.plugin = plugin;
+		
+		this.ticksBetween = ticksBetween;
+		
+		item = i;
+		player = p;
+		
+		maxDurability = item.getType().getMaxDurability();
+		durability = maxDurability;
+		interval = (short)Math.round(maxDurability/(ticks / ticksBetween));
+		iterations = Math.round(ticks/ticksBetween);
+		
+		item.setDurability(item.getType().getMaxDurability());
+		
+	}	
+		
+		public void run() {
+			
+			durability = (short) (durability - interval);
+			item.setDurability(durability);
+			iterations = iterations - 1;
+			
+			cooldownMap.put(player, iterations*ticksBetween);
+			
+			if (!(iterations > 0)) {
+				item.setDurability((short)0);
+				this.
+				
+				cooldownMap.put(player, null);
+			}
+			
+		}
 }
