@@ -41,11 +41,14 @@ public class PVPMain extends JavaPlugin implements Listener {
 		PluginManager pm = getServer().getPluginManager();
 		
 		getServer().getPluginManager().registerEvents(this, this);
+		
 		getServer().getPluginManager().registerEvents(new Aggressive(this), this);
+		
 		getServer().getPluginManager().registerEvents(new Invisibility(this), this);
 		getServer().getPluginManager().registerEvents(new FireBreath(this), this);
 		getServer().getPluginManager().registerEvents(new LandMine(this), this);
 		getServer().getPluginManager().registerEvents(new Lightning(this), this);
+		getServer().getPluginManager().registerEvents(new Slash(this), this);
 		
 		PVPMain plugin;
 		agg = new Aggressive(this);
