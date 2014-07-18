@@ -13,9 +13,10 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import io.github.secondflight.player.DamageHandler;
+import io.github.secondflight.player.ExperienceHandler;
 import io.github.secondflight.util.ItemUtil;
 import io.github.secondflight.abilities.*;
 
@@ -38,7 +39,7 @@ public class PVPMain extends JavaPlugin implements Listener {
 		PluginDescriptionFile pdfFile = this.getDescription();
 		this.logger.info(pdfFile.getName() + " has been Enabled.");
 		
-		PluginManager pm = getServer().getPluginManager();
+		//PluginManager pm = getServer().getPluginManager();
 		
 		getServer().getPluginManager().registerEvents(this, this);
 		
@@ -49,6 +50,8 @@ public class PVPMain extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(new LandMine(this), this);
 		getServer().getPluginManager().registerEvents(new Lightning(this), this);
 		getServer().getPluginManager().registerEvents(new Slash(this), this);
+		
+		getServer().getPluginManager().registerEvents(new DamageHandler(this), this);
 		
 		PVPMain plugin;
 		agg = new Aggressive(this);
@@ -64,7 +67,7 @@ public class PVPMain extends JavaPlugin implements Listener {
 		@EventHandler
 		public void chatEvent (AsyncPlayerChatEvent event) {
 			event.setCancelled(true);
-			event.getPlayer().getServer().broadcastMessage("[lvl " + getConfig().get("players." + event.getPlayer().getUniqueId().toString() + ".level") + "] <" + event.getPlayer().getDisplayName() + "> " + event.getMessage());
+			event.getPlayer().getServer().broadcastMessage("[lv. " + getConfig().get("players." + event.getPlayer().getUniqueId().toString() + ".level") + "] <" + event.getPlayer().getDisplayName() + "> " + event.getMessage());
 			//event.setMessage("[lvl " + getConfig().get("player." + event.getPlayer().getUniqueId().toString() + ".level") + "]" + event.getMessage());
 		}
 	
@@ -122,7 +125,7 @@ public class PVPMain extends JavaPlugin implements Listener {
 			this.getConfig().set(level, 1);
 		}
 		
-	saveConfig();
+		saveConfig();
 	
 	
 	}
@@ -132,24 +135,59 @@ public class PVPMain extends JavaPlugin implements Listener {
 	// Commands
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
-		if (commandLabel.equalsIgnoreCase("test") && args.length == 2)
-		{
+		if (sender instanceof Player) {	
 			Player player = (Player) sender;
+			if (commandLabel.equalsIgnoreCase("test") && args.length == 2)
+			{
+				
 		
 		
-			ItemUtil iu = new ItemUtil();
-			//iu.test(new ItemStack (Material.DIAMOND_SWORD), player, Integer.parseInt(args[0]), Integer.parseInt(args[1]));
-			iu.CreateWeapon(new ItemStack (Material.DIAMOND_SWORD), player, Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+				ItemUtil iu = new ItemUtil();
+				//iu.test(new ItemStack (Material.DIAMOND_SWORD), player, Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+				iu.CreateWeapon(new ItemStack (Material.DIAMOND_SWORD), player, Integer.parseInt(args[0]), Integer.parseInt(args[1]));
 		
-			//player.sendMessage(Integer.toString(DescriptionHandler.randomNumber(1, 2)));
+				//player.sendMessage(Integer.toString(DescriptionHandler.randomNumber(1, 2)));
+			}
+		
+			if (commandLabel.equalsIgnoreCase("pvpmain")) {
+				if (args.length == 0) {
+					player.sendMessage("-----------------------------------------------------");
+					player.sendMessage("/pvpmain setlevel [player] [number]");
+					player.sendMessage("        -- Sets the level of the player.");
+					player.sendMessage("-----------------------------------------------------");
+				} else if (args.length >= 1 && args[0].equalsIgnoreCase("setlevel")) {
+					if (args.length < 2 || args.length > 3) {
+						player.sendMessage(ChatColor.RED + "Invalid arguments.");
+						player.sendMessage(ChatColor.RED + "/pvpmain setlevel [player] [number]");
+					} else if (args.length == 3) {
+						boolean displayError = true;
+						for (Player p : player.getServer().getOnlinePlayers()) {
+							
+							if (p.getDisplayName().equalsIgnoreCase(args[1])) {
+								ExperienceHandler eh = new ExperienceHandler(plugin);
+								eh.setLevel(p, Integer.parseInt(args[2]));
+								if (p.equals(player)) {
+									player.sendMessage("Your level has been set to " + Integer.parseInt(args[2]) + ".");
+								} else {
+									player.sendMessage(p.getDisplayName() + "'s level has been set to " + Integer.parseInt(args[2]) + ".");
+								}
+								displayError = false;
+							}
+							
+						}
+						if (displayError == true) {
+							player.sendMessage(ChatColor.RED + "That player does not exist or is not online.");
+						}
+					} else if (args.length == 2) {
+						ExperienceHandler eh = new ExperienceHandler(plugin);
+						eh.setLevel(player, Integer.parseInt(args[1]));
+						player.sendMessage("Your level has been set to " + Integer.parseInt(args[2]) + ".");
+					}
+				}
 		}
 		
-		return false;
 	}	
-	
-	
-	int task1;
-	
+		return false;
 	
 	
 	
@@ -157,6 +195,10 @@ public class PVPMain extends JavaPlugin implements Listener {
 	
 	
 	
-}
-
+	
+	
+	
+	
+	}
+	}
 

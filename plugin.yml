@@ -8,3 +8,5 @@ commands:
 
   test:
     description: for debugging
+  pvpmain:
+    description: Main command for the pvp plugin.
