@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,6 +16,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import io.github.secondflight.mob.CustomMob;
+import io.github.secondflight.mob.MobTracker;
 import io.github.secondflight.player.DamageHandler;
 import io.github.secondflight.player.ExperienceHandler;
 import io.github.secondflight.util.ItemUtil;
@@ -52,6 +55,8 @@ public class PVPMain extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(new Slash(this), this);
 		
 		getServer().getPluginManager().registerEvents(new DamageHandler(this), this);
+		
+		getServer().getPluginManager().registerEvents(new MobTracker(this), this);
 		
 		PVPMain plugin;
 		agg = new Aggressive(this);
@@ -166,7 +171,7 @@ public class PVPMain extends JavaPlugin implements Listener {
 							if (p.getDisplayName().equalsIgnoreCase(args[1])) {
 								ExperienceHandler eh = new ExperienceHandler(plugin);
 								eh.setLevel(p, Integer.parseInt(args[2]));
-								if (p.equals(player)) {
+								if (p.getUniqueId().equals(player.getUniqueId())) {
 									player.sendMessage("Your level has been set to " + Integer.parseInt(args[2]) + ".");
 								} else {
 									player.sendMessage(p.getDisplayName() + "'s level has been set to " + Integer.parseInt(args[2]) + ".");
@@ -182,6 +187,67 @@ public class PVPMain extends JavaPlugin implements Listener {
 						ExperienceHandler eh = new ExperienceHandler(plugin);
 						eh.setLevel(player, Integer.parseInt(args[1]));
 						player.sendMessage("Your level has been set to " + Integer.parseInt(args[2]) + ".");
+					}
+				} else if (args.length > 2 && args[0].equalsIgnoreCase("spawn")) {
+					EntityType type = null;
+					
+					if (args[1].equalsIgnoreCase("zombie")) {
+						type = EntityType.ZOMBIE;
+					} else if (args[1].equalsIgnoreCase("skeleton")) {
+						type = EntityType.SKELETON;
+					} else if (args[1].equalsIgnoreCase("creeper")) {
+						type = EntityType.CREEPER;
+					} else if (args[1].equalsIgnoreCase("spider")) {
+						type = EntityType.SPIDER;
+					} else if (args[1].equalsIgnoreCase("cavespider")) {
+						type = EntityType.CAVE_SPIDER;
+					} else if (args[1].equalsIgnoreCase("silverfish")) {
+						type = EntityType.SILVERFISH;
+					} else if (args[1].equalsIgnoreCase("enderman")) {
+						type = EntityType.ENDERMAN;
+					} else if (args[1].equalsIgnoreCase("pig")) {
+						type = EntityType.PIG;
+					} else if (args[1].equalsIgnoreCase("sheep")) {
+						type = EntityType.SHEEP;
+					} else if (args[1].equalsIgnoreCase("cow")) {
+						type = EntityType.COW;
+					} else if (args[1].equalsIgnoreCase("mooshroom")) {
+						type = EntityType.MUSHROOM_COW;
+					} else if (args[1].equalsIgnoreCase("wolf") || args[1].equalsIgnoreCase("dog")) {
+						type = EntityType.WOLF;
+					} else if (args[1].equalsIgnoreCase("ocelot")) {
+						type = EntityType.OCELOT;
+					} else if (args[1].equalsIgnoreCase("villager")) {
+						type = EntityType.VILLAGER;
+					} else if (args[1].equalsIgnoreCase("slime")) {
+						type = EntityType.SLIME;
+					} else {
+						player.sendMessage(ChatColor.RED + args[1] + " is not a recognized mob name.");
+					}
+					
+					String mobName = "";
+					for (int i = 2; i < args.length; i++) {
+						if (!(i == args.length - 1)) {
+							mobName = mobName + args[i] + " ";
+						} else {
+							mobName = mobName + args[i];
+						}
+					}
+					
+					MobTracker.newTracker(new CustomMob(mobName, player.getLocation(), type));
+				}
+				
+				else if (args.length == 1 && args[0].equalsIgnoreCase("trackedlist")) {
+					player.sendMessage("There are " + MobTracker.mobList.size() + " mobs currently being tracked.");
+					
+					if (MobTracker.mobList.size() > 0) {
+						player.sendMessage("The following mobs are being tracked:");
+						player.sendMessage("---");
+						for (CustomMob mob : MobTracker.mobList) {
+							player.sendMessage("Mob name: " + mob.getName());
+							player.sendMessage("Mob type: " + mob.getLivingEntity().getType().name());
+							player.sendMessage("---");
+						}
 					}
 				}
 		}
