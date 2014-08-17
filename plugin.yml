@@ -6,7 +6,7 @@ description: >
                  Main (maybe only idk lol) plugin for the awesome pvp thing
 commands:
 
-  test:
+  item:
     description: for debugging
   pvpmain:
     description: Main command for the pvp plugin.
